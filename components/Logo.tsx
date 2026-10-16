@@ -6,7 +6,6 @@ interface LogoProps {
 }
 
 export default function Logo({ size = "md" }: LogoProps) {
-  // Ajusta las dimensiones según el tamaño solicitado
   const dimensions = {
     sm: { width: 80, height: 80, className: "h-8 w-auto" },
     md: { width: 100, height: 100, className: "h-10 w-auto" },
