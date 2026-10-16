@@ -1,26 +1,91 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0d0d0d;
+  --foreground: #e5d9c5;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    @apply border-pyne-border;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-pyne-black text-pyne-cream antialiased;
+    background-image:
+      radial-gradient(circle at 15% -10%, rgba(211, 184, 150, 0.08), transparent 45%),
+      radial-gradient(circle at 90% 0%, rgba(229, 217, 197, 0.04), transparent 40%);
+    background-attachment: fixed;
+  }
+
+  /* Resaltado de texto al seleccionar */
+  ::selection {
+    @apply bg-pyne-orange text-pyne-black;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply bg-pyne-smoke border border-pyne-border text-pyne-cream rounded-lg px-4 py-3 text-sm
+    placeholder:text-pyne-muted outline-none transition
+    focus:border-pyne-orange focus:ring-1 focus:ring-pyne-orange/40;
+  }
+
+  /* Scrollbar vintage */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0d0d0d;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2a2724;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d3b896;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .pyne-container {
+    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10;
+  }
+
+  .pyne-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3
+    text-xs font-bold uppercase tracking-[0.18em] transition-all duration-200
+    disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .pyne-btn-primary {
+    @apply pyne-btn bg-pyne-orange text-pyne-black hover:bg-pyne-cream hover:shadow-pyne;
+  }
+
+  .pyne-btn-outline {
+    @apply pyne-btn border border-pyne-border bg-transparent text-pyne-cream
+    hover:border-pyne-orange hover:text-pyne-orange;
+  }
+
+  .pyne-label {
+    @apply mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-pyne-muted;
+  }
+
+  .pyne-card {
+    @apply rounded-2xl border border-pyne-border bg-pyne-coal/70 backdrop-blur-sm;
+  }
+
+  .pyne-eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.3em] text-pyne-orange;
+  }
 }
