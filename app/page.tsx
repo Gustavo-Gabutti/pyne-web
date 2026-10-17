@@ -3,7 +3,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ShieldCheck, Truck, Store, MessageSquare } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
-import { getFeaturedProducts, getProductsByCategory } from "@/lib/products";
+import SneakerCarousel from "@/components/SneakerCarousel";
+import { getAllProducts, getFeaturedProducts, getProductsByCategory } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "PYNE ✦ Vintage & Selected Goods",
@@ -44,6 +45,7 @@ const BENEFITS = [
 ];
 
 export default function HomePage() {
+  const allProducts = getAllProducts();
   const featured = getFeaturedProducts(8);
   const sneakers = getProductsByCategory("zapatillas").slice(0, 4);
 
@@ -70,6 +72,8 @@ export default function HomePage() {
               Explorar indumentaria
             </Link>
           </div>
+
+          {/* Bloque de Atributos */}
           <div className="mt-16 grid max-w-2xl grid-cols-3 gap-6 border-t border-pyne-border pt-8">
             {[
               { k: "100%", v: "Autenticidad" },
@@ -82,6 +86,9 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          {/* ================= PASO 3: CARRUSEL 3D ================= */}
+          <SneakerCarousel products={allProducts} />
         </div>
       </section>
 
