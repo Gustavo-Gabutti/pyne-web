@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
 import type { CartAction, CartItem, CartState, Product } from "@/lib/types";
 import { cartCount, cartKey, cartTotal } from "@/lib/utils";
 
@@ -17,11 +18,6 @@ const STORAGE_KEY = "pyne-cart-v1";
 
 const initialState: CartState = { items: [] };
 
-/**
- * IMPORTANTE: cada línea del carrito se identifica por la clave compuesta
- * `${product.id}__${selectedSize}`. Dos talles distintos del mismo producto
- * generan DOS líneas independientes.
- */
 function reducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "HYDRATE":
@@ -30,7 +26,6 @@ function reducer(state: CartState, action: CartAction): CartState {
     case "ADD": {
       const { product, selectedSize, quantity = 1 } = action.payload;
       const key = cartKey(product.id, selectedSize);
-
       const existing = state.items.find(
         (i) => i.product.id === product.id && i.selectedSize === selectedSize
       );
@@ -100,7 +95,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  /* --- Lectura de localStorage SOLO en cliente (evita hydration mismatch) --- */
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -117,13 +111,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  /* --- Persistencia: solo después de hidratar --- */
   useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
   }, [state.items, hydrated]);
 
-  /* --- Bloqueo de scroll con el drawer abierto --- */
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
@@ -134,7 +126,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (product: Product, selectedSize: string, quantity = 1) => {
       dispatch({ type: "ADD", payload: { product, selectedSize, quantity } });
-      setIsOpen(true);
+      // Se removió setIsOpen(true) para no desplegar automáticamente el CartDrawer
     },
     []
   );
