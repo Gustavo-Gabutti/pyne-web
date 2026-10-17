@@ -46,7 +46,6 @@ export function titleize(slug: string): string {
 }
 
 /* ---------------- WhatsApp ---------------- */
-
 const SLOT_LABEL: Record<string, string> = {
   manana: "Mañana (9:00 - 12:00 hs)",
   tarde: "Tarde (15:00 - 19:00 hs)",
@@ -56,17 +55,14 @@ export function buildWhatsAppMessage(form: CheckoutForm, items: CartItem[]): str
   const lines: string[] = [];
 
   lines.push("*NUEVO PEDIDO — PYNE ✦*");
-  lines.push("_Vintage & Selected Goods_");
+  lines.push("*Vintage & Selected Goods*");
   lines.push("");
   lines.push("*🧾 DETALLE DEL PEDIDO*");
 
   items.forEach((item, index) => {
     const subtotal = item.product.price * item.quantity;
     lines.push(
-      `${index + 1}. ${item.product.brand} ${item.product.name}` +
-        `\n   • Talle: ${item.selectedSize}` +
-        `\n   • Cantidad: ${item.quantity}` +
-        `\n   • Subtotal: ${formatPrice(subtotal)}`
+      `${index + 1}. ${item.product.brand} ${item.product.name}\n   • Talle: ${item.selectedSize}\n   • Cantidad: ${item.quantity}\n   • Subtotal: ${formatPrice(subtotal)}`
     );
   });
 
@@ -91,7 +87,8 @@ export function buildWhatsAppMessage(form: CheckoutForm, items: CartItem[]): str
     lines.push(`Dirección: ${dir}`);
     if (form.city) lines.push(`Ciudad: ${form.city}`);
   } else {
-    lines.push("*🏬 RETIRO EN LOCAL*");
+    lines.push("*🏬 RETIRO PRESENCIAL*");
+    lines.push("Punto de retiro: Avenida Dr. Luis Gutnisky 4186");
     lines.push(`Turno: ${SLOT_LABEL[form.pickupSlot]}`);
   }
 

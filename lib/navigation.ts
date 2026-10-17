@@ -5,8 +5,6 @@ export const SNEAKER_BRANDS = [
   { label: "Adidas", slug: "adidas" },
   { label: "Jordan", slug: "jordan" },
   { label: "New Balance", slug: "new-balance" },
-  { label: "Vans", slug: "vans" },
-  { label: "Converse", slug: "converse" },
   { label: "Puma", slug: "puma" },
   { label: "Asics", slug: "asics" },
 ];
@@ -35,7 +33,6 @@ export const NUMERIC_SIZES = [
 ];
 
 export const STANDARD_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
-
 export const UNIQUE_SIZE = "Talla Única";
 
 /** Tabla de equivalencias para la guía de talles de zapatillas */
@@ -61,14 +58,14 @@ export const NAVIGATION: NavItem[] = [
     columns: [
       {
         title: "Marcas",
-        items: SNEAKER_BRANDS.slice(0, 4).map((b) => ({
+        items: SNEAKER_BRANDS.slice(0, 3).map((b) => ({
           label: b.label,
           href: `/zapatillas/${b.slug}`,
         })),
       },
       {
         title: "Más marcas",
-        items: SNEAKER_BRANDS.slice(4).map((b) => ({
+        items: SNEAKER_BRANDS.slice(3).map((b) => ({
           label: b.label,
           href: `/zapatillas/${b.slug}`,
         })),

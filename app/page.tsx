@@ -8,7 +8,7 @@ import { getFeaturedProducts, getProductsByCategory } from "@/lib/products";
 export const metadata: Metadata = {
   title: "PYNE ✦ Vintage & Selected Goods",
   description:
-    "Sneakers deadstock, indumentaria de archivo y accesorios seleccionados. Curaduría real, envíos a todo el país y retiro en local.",
+    "Sneakers deadstock, indumentaria de archivo y accesorios seleccionados. Curaduría real, envíos a todo el país y retiro presencial.",
   alternates: { canonical: "/" },
 };
 
@@ -39,7 +39,7 @@ const CATEGORIES = [
 const BENEFITS = [
   { icon: ShieldCheck, title: "Autenticidad verificada", copy: "Cada pieza pasa por control del equipo PYNE." },
   { icon: Truck, title: "Envíos a todo el país", copy: "Despacho en 24hs hábiles tras confirmar." },
-  { icon: Store, title: "Retiro en local", copy: "Turno mañana o tarde, sin cargo." },
+  { icon: Store, title: "Retiro presencial", copy: "Turno mañana o tarde en Av. Dr. Luis Gutnisky 4186, sin cargo." },
   { icon: MessageSquare, title: "Compra por WhatsApp", copy: "Te acompañamos en todo el proceso." },
 ];
 
@@ -53,18 +53,15 @@ export default function HomePage() {
       <section className="relative overflow-hidden border-b border-pyne-border">
         <div className="pyne-container relative flex min-h-[78vh] flex-col justify-center py-24">
           <p className="pyne-eyebrow animate-fadeUp">Vintage & Selected Goods</p>
-
           <h1 className="mt-5 max-w-4xl animate-fadeUp font-display text-6xl uppercase leading-[0.88] tracking-tight text-pyne-cream sm:text-7xl lg:text-[7.5rem]">
             Piezas con
             <br />
             <span className="text-pyne-orange">historia</span> propia
           </h1>
-
           <p className="mt-7 max-w-xl animate-fadeUp text-base leading-relaxed text-pyne-kraft">
             Sneakers deadstock, indumentaria de archivo y accesorios elegidos uno por uno.
             Curaduría real, sin relleno.
           </p>
-
           <div className="mt-10 flex animate-fadeUp flex-wrap gap-4">
             <Link href="/zapatillas" className="pyne-btn-primary">
               Ver zapatillas
@@ -73,7 +70,6 @@ export default function HomePage() {
               Explorar indumentaria
             </Link>
           </div>
-
           <div className="mt-16 grid max-w-2xl grid-cols-3 gap-6 border-t border-pyne-border pt-8">
             {[
               { k: "100%", v: "Autenticidad" },
@@ -95,7 +91,6 @@ export default function HomePage() {
           <p className="pyne-eyebrow">Explorá</p>
           <h2 className="mt-2 font-display text-4xl uppercase text-pyne-cream">Categorías</h2>
         </div>
-
         <div className="grid gap-5 md:grid-cols-3">
           {CATEGORIES.map((c) => (
             <Link
@@ -135,7 +130,6 @@ export default function HomePage() {
             Ver catálogo
           </Link>
         </div>
-
         <ProductGrid
           products={featured}
           emptyTitle="Sin destacados por ahora"
@@ -162,7 +156,6 @@ export default function HomePage() {
               Ver el drop
             </Link>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             {sneakers.map((p) => (
               <Link

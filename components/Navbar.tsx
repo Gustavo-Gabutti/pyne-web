@@ -18,20 +18,17 @@ export default function Navbar() {
     <>
       {/* Barra promo */}
       <div className="bg-pyne-orange py-2 text-center text-[10px] font-bold uppercase tracking-[0.25em] text-pyne-black">
-        Envíos a todo el país ✦ Retiro en local sin cargo
+        Envíos a todo el país ✦ Retiro presencial sin cargo
       </div>
-
       <header className="sticky top-0 z-40 border-b border-pyne-border bg-pyne-black/85 backdrop-blur-xl">
         <div className="pyne-container flex items-center justify-between gap-6">
           <div className="flex items-center gap-8">
             <Logo />
             <MegaMenu />
           </div>
-
           <div className="hidden max-w-md flex-1 md:block">
             <SearchBar />
           </div>
-
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -44,8 +41,6 @@ export default function Navbar() {
                 <path d="m20 20-3.2-3.2" />
               </svg>
             </button>
-
-
             <button
               type="button"
               onClick={openCart}
@@ -62,7 +57,6 @@ export default function Navbar() {
                 </span>
               )}
             </button>
-
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
@@ -75,14 +69,12 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-
         {/* Buscador mobile */}
         {searchOpen && (
           <div className="border-t border-pyne-border p-4 md:hidden">
             <SearchBar autoFocus onNavigate={() => setSearchOpen(false)} />
           </div>
         )}
-
         {/* Menú mobile */}
         {mobileOpen && (
           <div className="max-h-[70vh] overflow-y-auto border-t border-pyne-border lg:hidden">
@@ -114,7 +106,6 @@ export default function Navbar() {
           </div>
         )}
       </header>
-
       <CartDrawer />
     </>
   );

@@ -50,7 +50,6 @@ const PICKUP_SLOTS = [
 
 export default function CheckoutPage() {
   const { items, total, hydrated, increment, decrement, removeItem } = useCart();
-
   const [form, setForm] = useState<CheckoutForm>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -78,7 +77,6 @@ export default function CheckoutPage() {
 
   const validate = (): boolean => {
     const next: FormErrors = {};
-
     if (!form.firstName.trim()) next.firstName = "Ingresá tu nombre";
     if (!form.lastName.trim()) next.lastName = "Ingresá tu apellido";
     if (!/^[\d\s+()-]{7,}$/.test(form.phone.trim())) next.phone = "Teléfono inválido";
@@ -96,7 +94,6 @@ export default function CheckoutPage() {
 
   const handleSubmit = (): void => {
     if (items.length === 0) return;
-
     if (!validate()) {
       const firstError = document.querySelector<HTMLElement>('[data-error="true"]');
       firstError?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -107,7 +104,7 @@ export default function CheckoutPage() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  /* ---------- Loading (evita hydration mismatch) ---------- */
+  /* ---------- Loading ---------- */
   if (!hydrated) {
     return (
       <div className="pyne-container py-32 text-center">
@@ -140,7 +137,6 @@ export default function CheckoutPage() {
         <span className="text-pyne-border">/</span>
         <span className="text-pyne-cream">Checkout</span>
       </nav>
-
       <p className="pyne-eyebrow">Último paso</p>
       <h1 className="mt-2 font-display text-4xl uppercase text-pyne-cream sm:text-5xl">
         Finalizar pedido
@@ -160,7 +156,6 @@ export default function CheckoutPage() {
               </span>
               Tus datos
             </h2>
-
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Nombre *" error={errors.firstName}>
                 <input
@@ -171,7 +166,6 @@ export default function CheckoutPage() {
                   className="w-full"
                 />
               </Field>
-
               <Field label="Apellido *" error={errors.lastName}>
                 <input
                   name="lastName"
@@ -181,7 +175,6 @@ export default function CheckoutPage() {
                   className="w-full"
                 />
               </Field>
-
               <Field label="Teléfono *" error={errors.phone}>
                 <input
                   name="phone"
@@ -193,7 +186,6 @@ export default function CheckoutPage() {
                   className="w-full"
                 />
               </Field>
-
               <Field label="Email *" error={errors.email}>
                 <input
                   name="email"
@@ -242,7 +234,7 @@ export default function CheckoutPage() {
                     : "text-pyne-muted hover:text-pyne-cream"
                 )}
               >
-                🏬 Retiro en local
+                🏬 Retiro presencial
               </button>
             </div>
 
@@ -258,7 +250,6 @@ export default function CheckoutPage() {
                     className="w-full"
                   />
                 </Field>
-
                 <Field label="Número *" error={errors.streetNumber}>
                   <input
                     name="streetNumber"
@@ -268,7 +259,6 @@ export default function CheckoutPage() {
                     className="w-full"
                   />
                 </Field>
-
                 <Field label="Piso (opcional)">
                   <input
                     name="floor"
@@ -278,7 +268,6 @@ export default function CheckoutPage() {
                     className="w-full"
                   />
                 </Field>
-
                 <Field label="Depto (opcional)">
                   <input
                     name="apartment"
@@ -288,7 +277,6 @@ export default function CheckoutPage() {
                     className="w-full"
                   />
                 </Field>
-
                 <div className="sm:col-span-2">
                   <Field label="Ciudad / Localidad *" error={errors.city}>
                     <input
@@ -303,11 +291,10 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Opción B: Retiro */}
+            {/* Opción B: Retiro presencial */}
             {form.delivery === "retiro" && (
               <div className="animate-fadeUp">
                 <p className="pyne-label">Elegí tu turno de retiro *</p>
-
                 <div className="grid gap-3 sm:grid-cols-2">
                   {PICKUP_SLOTS.map((slot) => (
                     <button
@@ -334,10 +321,11 @@ export default function CheckoutPage() {
                     </button>
                   ))}
                 </div>
-
-                <p className="mt-5 rounded-xl border border-pyne-border bg-pyne-smoke/60 p-4 text-xs leading-relaxed text-pyne-muted">
-                  📍 Te pasamos la dirección exacta del local por WhatsApp al confirmar el pedido.
-                </p>
+                <div className="mt-5 rounded-xl border border-pyne-border bg-pyne-smoke/60 p-4 text-xs leading-relaxed text-pyne-cream">
+                  <p className="font-semibold text-pyne-orange">📍 Punto de retiro presencial:</p>
+                  <p className="mt-1 font-medium text-pyne-cream">Avenida Dr. Luis Gutnisky 4186</p>
+                  <p className="mt-1 text-[11px] text-pyne-muted">Te confirmaremos los detalles de tu turno por WhatsApp.</p>
+                </div>
               </div>
             )}
 
@@ -363,7 +351,6 @@ export default function CheckoutPage() {
               <p className="pyne-eyebrow">Resumen</p>
               <h2 className="font-display text-xl uppercase text-pyne-cream">Tu pedido</h2>
             </header>
-
             <ul className="max-h-[380px] space-y-5 overflow-y-auto px-6 py-5">
               {items.map((item) => (
                 <li key={item.key} className="flex gap-4">
@@ -376,7 +363,6 @@ export default function CheckoutPage() {
                       className="object-cover"
                     />
                   </div>
-
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] uppercase tracking-[0.18em] text-pyne-muted">
                       {item.product.brand}
@@ -386,7 +372,6 @@ export default function CheckoutPage() {
                       Talle: <span className="text-pyne-orange">{item.selectedSize}</span> · Cant.{" "}
                       {item.quantity}
                     </p>
-
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center gap-1 rounded-full border border-pyne-border">
                         <button
@@ -407,12 +392,10 @@ export default function CheckoutPage() {
                           +
                         </button>
                       </div>
-
                       <span className="text-sm font-semibold text-pyne-cream">
                         {formatPrice(item.product.price * item.quantity)}
                       </span>
                     </div>
-
                     <button
                       type="button"
                       onClick={() => removeItem(item.key)}
@@ -424,27 +407,23 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
-
             <div className="space-y-4 border-t border-pyne-border bg-pyne-black/40 px-6 py-5">
               <div className="flex justify-between text-sm text-pyne-muted">
                 <span>Subtotal</span>
                 <span className="text-pyne-cream">{formatPrice(total)}</span>
               </div>
-
               <div className="flex justify-between text-sm text-pyne-muted">
-                <span>{form.delivery === "envio" ? "Envío" : "Retiro en local"}</span>
+                <span>{form.delivery === "envio" ? "Envío" : "Retiro presencial"}</span>
                 <span className="text-pyne-cream">
                   {form.delivery === "envio" ? "A coordinar" : "Sin cargo"}
                 </span>
               </div>
-
               <div className="flex items-center justify-between border-t border-pyne-border pt-4">
-                <span className="text-xs uppercase tracking-[0.2em] text-pyne-muted">Total</span>
+                <span className="text-xs uppercase tracking-[0.2em Wand] text-pyne-muted">Total</span>
                 <span className="font-display text-3xl text-pyne-orange">
                   {formatPrice(total)}
                 </span>
               </div>
-
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -455,13 +434,11 @@ export default function CheckoutPage() {
                 </svg>
                 Enviar pedido por WhatsApp
               </button>
-
               <p className="text-center text-[11px] leading-relaxed text-pyne-muted">
                 Al enviar, se abre WhatsApp con el detalle de tu pedido listo para confirmar.
               </p>
             </div>
           </div>
-
           <Link
             href="/"
             className="mt-4 block text-center text-[11px] uppercase tracking-[0.16em] text-pyne-muted transition hover:text-pyne-orange"
