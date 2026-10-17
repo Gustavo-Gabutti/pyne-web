@@ -7,21 +7,23 @@ interface LogoProps {
 
 export default function Logo({ size = "md" }: LogoProps) {
   const dimensions = {
-    sm: { width: 80, height: 80, className: "h-8 w-auto" },
-    md: { width: 100, height: 100, className: "h-10 w-auto" },
-    lg: { width: 140, height: 140, className: "h-14 w-auto" },
+    sm: { width: 36, height: 36, className: "h-9 w-9" },
+    md: { width: 44, height: 44, className: "h-11 w-11" },
+    lg: { width: 56, height: 56, className: "h-14 w-14" },
   }[size];
 
   return (
     <Link href="/" className="flex items-center gap-2">
-      <Image
-        src="/logo.jpg"
-        alt="PYNE Logo"
-        width={dimensions.width}
-        height={dimensions.height}
-        className={`${dimensions.className} object-contain`}
-        priority
-      />
+      <div className={`${dimensions.className} relative overflow-hidden rounded-full shrink-0`}>
+        <Image
+          src="/logo.jpg"
+          alt="PYNE Logo"
+          fill
+          sizes="56px"
+          className="object-cover"
+          priority
+        />
+      </div>
     </Link>
   );
 }
