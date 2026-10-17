@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type ChangeEvent, type ReactNode } from "react";
 import { useCart } from "@/context/CartContext";
 import EmptyState from "@/components/EmptyState";
+import ShippingCalculator from "@/components/ShippingCalculator";
 import type { CheckoutForm, DeliveryMethod, PickupSlot } from "@/lib/types";
 import { buildWhatsAppUrl, cn, formatPrice } from "@/lib/utils";
 
@@ -240,54 +241,59 @@ export default function CheckoutPage() {
 
             {/* Opción A: Envío */}
             {form.delivery === "envio" && (
-              <div className="grid animate-fadeUp gap-5 sm:grid-cols-2">
-                <Field label="Calle *" error={errors.street}>
-                  <input
-                    name="street"
-                    value={form.street}
-                    onChange={handleChange}
-                    placeholder="Av. 25 de Mayo"
-                    className="w-full"
-                  />
-                </Field>
-                <Field label="Número *" error={errors.streetNumber}>
-                  <input
-                    name="streetNumber"
-                    value={form.streetNumber}
-                    onChange={handleChange}
-                    placeholder="1234"
-                    className="w-full"
-                  />
-                </Field>
-                <Field label="Piso (opcional)">
-                  <input
-                    name="floor"
-                    value={form.floor}
-                    onChange={handleChange}
-                    placeholder="3"
-                    className="w-full"
-                  />
-                </Field>
-                <Field label="Depto (opcional)">
-                  <input
-                    name="apartment"
-                    value={form.apartment}
-                    onChange={handleChange}
-                    placeholder="B"
-                    className="w-full"
-                  />
-                </Field>
-                <div className="sm:col-span-2">
-                  <Field label="Ciudad / Localidad *" error={errors.city}>
+              <div className="space-y-6 animate-fadeUp">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Calle *" error={errors.street}>
                     <input
-                      name="city"
-                      value={form.city}
+                      name="street"
+                      value={form.street}
                       onChange={handleChange}
-                      placeholder="Formosa"
+                      placeholder="Av. 25 de Mayo"
                       className="w-full"
                     />
                   </Field>
+                  <Field label="Número *" error={errors.streetNumber}>
+                    <input
+                      name="streetNumber"
+                      value={form.streetNumber}
+                      onChange={handleChange}
+                      placeholder="1234"
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Piso (opcional)">
+                    <input
+                      name="floor"
+                      value={form.floor}
+                      onChange={handleChange}
+                      placeholder="3"
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Depto (opcional)">
+                    <input
+                      name="apartment"
+                      value={form.apartment}
+                      onChange={handleChange}
+                      placeholder="B"
+                      className="w-full"
+                    />
+                  </Field>
+                  <div className="sm:col-span-2">
+                    <Field label="Ciudad / Localidad *" error={errors.city}>
+                      <input
+                        name="city"
+                        value={form.city}
+                        onChange={handleChange}
+                        placeholder="Formosa"
+                        className="w-full"
+                      />
+                    </Field>
+                  </div>
                 </div>
+
+                {/* Calculadora de envíos */}
+                <ShippingCalculator />
               </div>
             )}
 
@@ -419,7 +425,7 @@ export default function CheckoutPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between border-t border-pyne-border pt-4">
-                <span className="text-xs uppercase tracking-[0.2em Wand] text-pyne-muted">Total</span>
+                <span className="text-xs uppercase tracking-[0.2em] text-pyne-muted">Total</span>
                 <span className="font-display text-3xl text-pyne-orange">
                   {formatPrice(total)}
                 </span>
