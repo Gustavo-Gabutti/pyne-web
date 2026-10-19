@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CollectionHeader from "@/components/CollectionHeader";
 import ProductGrid from "@/components/ProductGrid";
 import { SNEAKER_BRANDS } from "@/lib/navigation";
-import { getProductsByCategory, sortProducts } from "@/lib/products";
+import { getAllProducts, sortProducts } from "@/lib/products";
 
 interface PageProps {
   searchParams: Promise<{ sort?: string }>;
@@ -25,7 +25,12 @@ const SORTS = [
 export default async function ZapatillasPage({ searchParams }: PageProps) {
   const { sort } = await searchParams;
 
-  const products = sortProducts(getProductsByCategory("zapatillas"), sort);
+  // 1. Obtenemos todos los productos actualizados desde Sanity
+  const allProducts = await getAllProducts();
+
+  // 2. Filtramos la categoría zapatillas y aplicamos el ordenamiento seleccionado
+  const zapatillasList = allProducts.filter((p) => p.category === "zapatillas");
+  const products = sortProducts(zapatillasList, sort);
 
   return (
     <div className="pyne-container py-10 lg:py-14">

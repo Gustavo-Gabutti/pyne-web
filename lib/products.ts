@@ -1,22 +1,56 @@
+import { client, urlFor } from "./sanity";
 import raw from "@/data/products.json";
 import type { Category, Product } from "./types";
 
-const PRODUCTS = raw as Product[];
+const LOCAL_PRODUCTS = raw as Product[];
 
-export function getAllProducts(): Product[] {
-  return PRODUCTS;
+export async function getAllProducts(): Promise<Product[]> {
+  try {
+    const query = `*[_type == "product"]{
+      "id": _id,
+      "slug": slug.current,
+      name,
+      brand,
+      brandSlug,
+      category,
+      subcategory,
+      subcategoryLabel,
+      price,
+      compareAtPrice,
+      description,
+      image,
+      images,
+      sizeType,
+      sizes,
+      condition,
+      stock,
+      featured,
+      tags
+    }`;
+    const sanityProducts = await client.fetch(query);
+    if (Array.isArray(sanityProducts) && sanityProducts.length > 0) {
+      return sanityProducts.map((p: any) => ({
+        ...p,
+        image: p.image ? urlFor(p.image).url() : "",
+        images: p.images ? p.images.map((img: any) => urlFor(img).url()) : [],
+      }));
+    }
+  } catch (err) {
+    console.warn("Utilizando productos locales como respaldo:", err);
+  }
+  return LOCAL_PRODUCTS;
 }
 
-export function getProductById(id: string): Product | undefined {
-  return PRODUCTS.find((p) => p.id === id || p.slug === id);
+export function getFeaturedProducts(limit = 8): Product[] {
+  return LOCAL_PRODUCTS.filter((p) => p.featured).slice(0, limit);
 }
 
 export function getProductsByCategory(category: Category): Product[] {
-  return PRODUCTS.filter((p) => p.category === category);
+  return LOCAL_PRODUCTS.filter((p) => p.category === category);
 }
 
 export function getProductsByBrand(brandSlug: string): Product[] {
-  return PRODUCTS.filter(
+  return LOCAL_PRODUCTS.filter(
     (p) => p.category === "zapatillas" && p.brandSlug === brandSlug.toLowerCase()
   );
 }
@@ -25,17 +59,17 @@ export function getProductsBySubcategory(
   category: Category,
   subcategory: string
 ): Product[] {
-  return PRODUCTS.filter(
+  return LOCAL_PRODUCTS.filter(
     (p) => p.category === category && p.subcategory === subcategory.toLowerCase()
   );
 }
 
-export function getFeaturedProducts(limit = 8): Product[] {
-  return PRODUCTS.filter((p) => p.featured).slice(0, limit);
+export function getProductById(id: string): Product | undefined {
+  return LOCAL_PRODUCTS.find((p) => p.id === id || p.slug === id);
 }
 
 export function getRelatedProducts(product: Product, limit = 4): Product[] {
-  return PRODUCTS.filter(
+  return LOCAL_PRODUCTS.filter(
     (p) => p.id !== product.id && p.category === product.category
   ).slice(0, limit);
 }
@@ -43,8 +77,8 @@ export function getRelatedProducts(product: Product, limit = 4): Product[] {
 export function searchProducts(query: string): Product[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return PRODUCTS.filter((p) =>
-    [p.name, p.brand, p.category, p.subcategoryLabel, p.condition, ...p.tags]
+  return LOCAL_PRODUCTS.filter((p) =>
+    [p.name, p.brand, p.category, p.subcategoryLabel, p.condition, ...(p.tags || [])]
       .join(" ")
       .toLowerCase()
       .includes(q)
@@ -52,21 +86,10 @@ export function searchProducts(query: string): Product[] {
 }
 
 export function getBrandLabel(brandSlug: string): string {
-  const found = PRODUCTS.find((p) => p.brandSlug === brandSlug.toLowerCase());
+  const found = LOCAL_PRODUCTS.find((p) => p.brandSlug === brandSlug.toLowerCase());
   return found ? found.brand : brandSlug;
 }
 
-export function getSubcategoryLabel(
-  category: Category,
-  subcategory: string
-): string {
-  const found = PRODUCTS.find(
-    (p) => p.category === category && p.subcategory === subcategory.toLowerCase()
-  );
-  return found ? found.subcategoryLabel : subcategory;
-}
-
-/** Ordena por el parámetro `sort` de la URL */
 export function sortProducts(products: Product[], sort?: string): Product[] {
   const list = [...products];
   switch (sort) {

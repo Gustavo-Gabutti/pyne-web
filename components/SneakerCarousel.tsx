@@ -12,8 +12,10 @@ interface SneakerCarouselProps {
 }
 
 export default function SneakerCarousel({ products }: SneakerCarouselProps) {
-  // Filtrar exclusivamente la categoría "zapatillas"
-  const sneakers = products.filter((p) => p.category === "zapatillas");
+  // Garantizar que products sea un Array antes de filtrar
+  const safeProducts = Array.isArray(products) ? products : [];
+  const sneakers = safeProducts.filter((p) => p.category === "zapatillas");
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);

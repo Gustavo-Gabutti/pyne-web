@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { ShieldCheck, Truck, Store, MessageSquare } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
 import SneakerCarousel from "@/components/SneakerCarousel";
-import { getAllProducts, getFeaturedProducts, getProductsByCategory } from "@/lib/products";
+import { getAllProducts } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "PYNE ✦ Vintage & Selected Goods",
@@ -13,30 +13,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const CATEGORIES = [
-  {
-    title: "Zapatillas",
-    href: "/zapatillas",
-    copy: "Deadstock, retros y pares de archivo.",
-    image:
-      "https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=900&q=70",
-  },
-  {
-    title: "Indumentaria",
-    href: "/indumentaria",
-    copy: "Remeras, hoodies y denim vintage.",
-    image:
-      "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=70",
-  },
-  {
-    title: "Accesorios",
-    href: "/accesorios",
-    copy: "Relojes, gorras y complementos.",
-    image:
-      "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=900&q=70",
-  },
-];
-
 const BENEFITS = [
   { icon: ShieldCheck, title: "Autenticidad verificada", copy: "Cada pieza pasa por control del equipo PYNE." },
   { icon: Truck, title: "Envíos a todo el país", copy: "Despacho en 24hs hábiles tras confirmar." },
@@ -44,10 +20,39 @@ const BENEFITS = [
   { icon: MessageSquare, title: "Compra por WhatsApp", copy: "Te acompañamos en todo el proceso." },
 ];
 
-export default function HomePage() {
-  const allProducts = getAllProducts();
-  const featured = getFeaturedProducts(8);
-  const sneakers = getProductsByCategory("zapatillas").slice(0, 4);
+export default async function HomePage() {
+  // Obtenemos todos los productos desde Sanity (con respaldo local si aplica)
+  const allProducts = await getAllProducts();
+  
+  // Filtramos destacados y zapatillas para el drop
+  const featured = allProducts.filter((p) => p.featured).slice(0, 8);
+  const sneakers = allProducts.filter((p) => p.category === "zapatillas").slice(0, 4);
+
+  // Obtenemos dinámicamente la foto del primer producto de cada categoría (o usamos un respaldo prolijo)
+  const zapaImage = allProducts.find((p) => p.category === "zapatillas")?.image || "https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=900&q=70";
+  const indImage = allProducts.find((p) => p.category === "indumentaria")?.image || "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=70";
+  const accImage = allProducts.find((p) => p.category === "accesorios")?.image || "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=900&q=70";
+
+  const categories = [
+    {
+      title: "Zapatillas",
+      href: "/zapatillas",
+      copy: "Deadstock, retros y pares de archivo.",
+      image: zapaImage,
+    },
+    {
+      title: "Indumentaria",
+      href: "/indumentaria",
+      copy: "Remeras, hoodies y denim vintage.",
+      image: indImage,
+    },
+    {
+      title: "Accesorios",
+      href: "/accesorios",
+      copy: "Relojes, gorras y complementos.",
+      image: accImage,
+    },
+  ];
 
   return (
     <>
@@ -87,19 +92,19 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* ================= PASO 3: CARRUSEL 3D ================= */}
+          {/* ================= CARRUSEL 3D ================= */}
           <SneakerCarousel products={allProducts} />
         </div>
       </section>
 
-      {/* ================= CATEGORÍAS ================= */}
+      {/* ================= CATEGORÍAS (DINÁMICAS SEGÚN SANITY) ================= */}
       <section className="pyne-container py-20">
         <div className="mb-10">
           <p className="pyne-eyebrow">Explorá</p>
           <h2 className="mt-2 font-display text-4xl uppercase text-pyne-cream">Categorías</h2>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <Link
               key={c.href}
               href={c.href}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CollectionHeader from "@/components/CollectionHeader";
 import ProductGrid from "@/components/ProductGrid";
 import { CLOTHING_SUBCATEGORIES, STANDARD_SIZES } from "@/lib/navigation";
-import { getProductsByCategory, sortProducts } from "@/lib/products";
+import { getAllProducts, sortProducts } from "@/lib/products";
 
 interface PageProps {
   searchParams: Promise<{ sort?: string }>;
@@ -25,7 +25,10 @@ const SORTS = [
 export default async function IndumentariaPage({ searchParams }: PageProps) {
   const { sort } = await searchParams;
 
-  const products = sortProducts(getProductsByCategory("indumentaria"), sort);
+  // Obtenemos los productos desde Sanity y filtramos indumentaria
+  const allProducts = await getAllProducts();
+  const clothingList = allProducts.filter((p) => p.category === "indumentaria");
+  const products = sortProducts(clothingList, sort);
 
   return (
     <div className="pyne-container py-10 lg:py-14">

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CollectionHeader from "@/components/CollectionHeader";
 import ProductGrid from "@/components/ProductGrid";
 import { ACCESSORY_SUBCATEGORIES } from "@/lib/navigation";
-import { getProductsByCategory, sortProducts } from "@/lib/products";
+import { getAllProducts, sortProducts } from "@/lib/products";
 
 interface PageProps {
   searchParams: Promise<{ sort?: string }>;
@@ -30,7 +30,10 @@ const SORTS = [
 export default async function AccesoriosPage({ searchParams }: PageProps) {
   const { sort } = await searchParams;
 
-  const products = sortProducts(getProductsByCategory("accesorios"), sort);
+  // Obtenemos los productos desde Sanity y filtramos accesorios
+  const allProducts = await getAllProducts();
+  const accessoriesList = allProducts.filter((p) => p.category === "accesorios");
+  const products = sortProducts(accessoriesList, sort);
 
   return (
     <div className="pyne-container py-10 lg:py-14">
