@@ -11,14 +11,15 @@ interface PageProps {
 }
 
 /* ---------- SSG ---------- */
-export function generateStaticParams() {
-  return getAllProducts().map((p) => ({ id: p.id }));
+export async function generateStaticParams() {
+  const products = await getAllProducts();
+  return products.map((p) => ({ id: p.id }));
 }
 
 /* ---------- SEO dinámico ---------- */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = getProductById(id);
+  const product = await getProductById(id);
 
   if (!product) {
     return { title: "Producto no encontrado" };
@@ -48,11 +49,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
-  const product = getProductById(id);
+  const product = await getProductById(id);
 
   if (!product) notFound();
 
-  const related = getRelatedProducts(product, 4);
+  const related = await getRelatedProducts(product, 4);
 
   const categoryHref = `/${product.category}`;
   const subHref =
