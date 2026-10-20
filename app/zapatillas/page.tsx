@@ -1,69 +1,48 @@
 import type { Metadata } from "next";
-import CollectionHeader from "@/components/CollectionHeader";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import ProductGrid from "@/components/ProductGrid";
-import { SNEAKER_BRANDS } from "@/lib/navigation";
-import { getAllProducts, sortProducts } from "@/lib/products";
+import { getBrandLabel, getProductsByBrand, sortProducts } from "@/lib/products";
 
 interface PageProps {
+  params: Promise<{ brand: string }>;
   searchParams: Promise<{ sort?: string }>;
 }
 
-export const metadata: Metadata = {
-  title: "Zapatillas — Deadstock, Retro & Vintage",
-  description:
-    "Sneakers seleccionadas en PYNE: Nike, Adidas, Jordan, New Balance, Vans y más. Talles US reales, guía de medidas y envíos a todo el país.",
-  alternates: { canonical: "/zapatillas" },
-};
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { brand } = await params;
+  const label = await getBrandLabel(brand);
+  return {
+    title: `Zapatillas ${label}`,
+    description: `Catálogo de zapatillas ${label} en PYNE.`,
+  };
+}
 
-const SORTS = [
-  { label: "Destacados", value: "" },
-  { label: "Menor precio", value: "precio-asc" },
-  { label: "Mayor precio", value: "precio-desc" },
-  { label: "A-Z", value: "nombre" },
-];
-
-export default async function ZapatillasPage({ searchParams }: PageProps) {
+export default async function BrandPage({ params, searchParams }: PageProps) {
+  const { brand } = await params;
   const { sort } = await searchParams;
 
-  // 1. Obtenemos todos los productos actualizados desde Sanity
-  const allProducts = await getAllProducts();
+  const rawProducts = await getProductsByBrand(brand);
+  const brandLabel = await getBrandLabel(brand);
 
-  // 2. Filtramos la categoría zapatillas y aplicamos el ordenamiento seleccionado
-  const zapatillasList = allProducts.filter((p) => p.category === "zapatillas");
-  const products = sortProducts(zapatillasList, sort);
+  if (!rawProducts || rawProducts.length === 0) {
+    notFound();
+  }
+
+  const products = sortProducts(rawProducts, sort);
 
   return (
     <div className="pyne-container py-10 lg:py-14">
-      <CollectionHeader
-        eyebrow="PYNE ✦ Footwear"
-        title="Zapatillas"
-        description="Pares curados uno por uno: deadstock, retros y siluetas de archivo. Todos los talles en escala US con guía de equivalencias."
-        count={products.length}
-        breadcrumbs={[
-          { label: "Inicio", href: "/" },
-          { label: "Zapatillas", href: "/zapatillas" },
-        ]}
-        filters={[
-          { label: "Todas", href: "/zapatillas", active: true },
-          ...SNEAKER_BRANDS.map((b) => ({
-            label: b.label,
-            href: `/zapatillas/${b.slug}`,
-          })),
-        ]}
-        sortOptions={SORTS.map((s) => ({
-          label: s.label,
-          href: s.value ? `/zapatillas?sort=${s.value}` : "/zapatillas",
-          active: (sort ?? "") === s.value,
-        }))}
-      />
+      <nav className="mb-8 flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-pyne-muted">
+        <Link href="/" className="hover:text-pyne-orange transition">Inicio</Link>
+        <span>/</span>
+        <Link href="/zapatillas" className="hover:text-pyne-orange transition">Zapatillas</Link>
+        <span>/</span>
+        <span className="text-pyne-cream">{brandLabel}</span>
+      </nav>
 
-      <div className="mt-10">
-        <ProductGrid
-          products={products}
-          emptyTitle="Sin zapatillas disponibles"
-          emptyMessage="Estamos reponiendo stock. Volvé en unos días."
-        />
-      </div>
+      <h1 className="font-display text-4xl uppercase text-pyne-cream mb-8">{brandLabel}</h1>
+      <ProductGrid products={products} />
     </div>
   );
 }
