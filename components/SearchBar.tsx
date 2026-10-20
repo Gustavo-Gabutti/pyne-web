@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { searchProducts } from "@/lib/products";
 import type { Product } from "@/lib/types";
 
-export default function SearchBar() {
+interface SearchBarProps {
+  autoFocus?: boolean;
+  onNavigate?: () => void;
+}
+
+export default function SearchBar({ autoFocus, onNavigate }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const router = useRouter();
@@ -28,6 +33,7 @@ export default function SearchBar() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
+      if (onNavigate) onNavigate();
       router.push(`/buscar?q=${encodeURIComponent(query.trim())}`);
     }
   };
@@ -37,6 +43,7 @@ export default function SearchBar() {
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
           type="text"
+          autoFocus={autoFocus}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar zapatillas, marcas, prendas..."
@@ -53,7 +60,10 @@ export default function SearchBar() {
             <Link
               key={p.id}
               href={`/producto/${p.id}`}
-              onClick={() => setQuery("")}
+              onClick={() => {
+                setQuery("");
+                if (onNavigate) onNavigate();
+              }}
               className="block p-3 hover:bg-pyne-border/20 text-xs text-pyne-cream transition"
             >
               <span className="font-bold">{p.brand}</span> {p.name}
