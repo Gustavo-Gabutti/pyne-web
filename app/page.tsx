@@ -9,7 +9,7 @@ import { getAllProducts } from "@/lib/products";
 export const metadata: Metadata = {
   title: "PYNE ✦ Vintage & Selected Goods",
   description:
-    "Sneakers deadstock, indumentaria de archivo y accesorios seleccionados. Curaduría real, envíos a todo el país y retiro presencial.",
+    "Sneakers e indumentaria originales second hand, seleccionados uno a uno. Accesorios nuevos para completar la coleccion.",
   alternates: { canonical: "/" },
 };
 
