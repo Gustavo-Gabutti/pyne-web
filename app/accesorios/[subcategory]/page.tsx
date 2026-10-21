@@ -1,32 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-
 import CollectionHeader from "@/components/CollectionHeader";
 import ProductGrid from "@/components/ProductGrid";
 import { ACCESSORY_SUBCATEGORIES } from "@/lib/navigation";
-import { getProductsBySubcategory, getSubcategoryLabel, sortProducts } from "@/lib/products";
-import { titleize } from "@/lib/utils";
+import {
+  getProductsBySubcategory,
+  getSubcategoryFacets,
+  mergeFacets,
+  sortProducts,
+} from "@/lib/products";
 
 interface PageProps {
   params: Promise<{ subcategory: string }>;
   searchParams: Promise<{ sort?: string }>;
-}
-
-export function generateStaticParams() {
-  return ACCESSORY_SUBCATEGORIES.map((s) => ({ subcategory: s.slug }));
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { subcategory } = await params;
-  const rawLabel = await getSubcategoryLabel("accesorios", subcategory);
-  const label = rawLabel || titleize(subcategory);
-  const subcatProducts = await getProductsBySubcategory("accesorios", subcategory);
-
-  return {
-    title: `${label} — Accesorios`,
-    description: `${subcatProducts.length} ${label.toLowerCase()} seleccionados en PYNE. Piezas únicas y complementos de archivo.`,
-    alternates: { canonical: `/accesorios/${subcategory}` },
-  };
 }
 
 const SORTS = [
@@ -36,25 +22,79 @@ const SORTS = [
   { label: "A-Z", value: "nombre" },
 ];
 
-export default async function SubcategoryPage({ params, searchParams }: PageProps) {
+/** Copys específicos por subcategoría */
+const SUBCATEGORY_COPY: Record<string, string> = {
+  relojes:
+    "Movimientos automáticos y quartz seleccionados. Cajas de acero, cristales resistentes y correas intercambiables.",
+  gorras:
+    "Snapbacks, truckers y dad hats. Bordados 3D, cierres regulables y materiales que aguantan el uso diario.",
+  bolsos:
+    "Mochilas y bolsos utility en Cordura y lona resistente. Compartimentos pensados para el día a día.",
+  lentes:
+    "Armazones de acetato y metal con lentes polarizadas UV400. Estuche rígido y paño incluidos.",
+  cinturones:
+    "Cuero genuino y webbing táctico. Hebillas metálicas mate con acabado vintage.",
+};
+
+/** Subcategorías fijas de navigation.ts + las que existan en Sanity. */
+async function resolveSubcategory(subcategory: string) {
+  const facets = mergeFacets(
+    ACCESSORY_SUBCATEGORIES,
+    await getSubcategoryFacets("accesorios")
+  );
+  const current = facets.find((s) => s.slug === subcategory.toLowerCase());
+  return { facets, current };
+}
+
+/* ---------- SEO dinámico ---------- */
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { subcategory } = await params;
+  const { current } = await resolveSubcategory(subcategory);
+
+  if (!current) return { title: "Categoría no encontrada" };
+
+  const count = (await getProductsBySubcategory("accesorios", subcategory)).length;
+
+  const description =
+    SUBCATEGORY_COPY[subcategory] ??
+    `${count} ${count === 1 ? "producto" : "productos"} en la categoría ${current.label}. Accesorios de talla única seleccionados por PYNE ✦.`;
+
+  return {
+    title: `${current.label} — Accesorios`,
+    description,
+    alternates: { canonical: `/accesorios/${subcategory}` },
+    openGraph: {
+      title: `${current.label} | PYNE ✦`,
+      description,
+      type: "website",
+    },
+  };
+}
+
+export default async function AccessorySubcategoryPage({ params, searchParams }: PageProps) {
   const { subcategory } = await params;
   const { sort } = await searchParams;
 
-  const isKnownSubcategory = ACCESSORY_SUBCATEGORIES.some((s) => s.slug === subcategory);
-  if (!isKnownSubcategory) notFound();
+  const { facets, current } = await resolveSubcategory(subcategory);
+  if (!current) notFound();
 
-  const rawLabel = await getSubcategoryLabel("accesorios", subcategory);
-  const label = rawLabel || titleize(subcategory);
-  const rawProducts = await getProductsBySubcategory("accesorios", subcategory);
-  const products = sortProducts(rawProducts, sort);
-  const base = `/accesorios/${subcategory}`;
+  const label = current.label;
+  const products = sortProducts(
+    await getProductsBySubcategory("accesorios", subcategory),
+    sort
+  );
+  const base = `/accesorios/${current.slug}`;
+
+  const description =
+    SUBCATEGORY_COPY[current.slug] ??
+    `Nuestra selección de ${label.toLowerCase()}. Piezas de talla única, elegidas por calidad y diseño.`;
 
   return (
     <div className="pyne-container py-10 lg:py-14">
       <CollectionHeader
         eyebrow={`PYNE ✦ ${label}`}
         title={label}
-        description={`Accesorios y complementos elegidos por su diseño y estado. ${label} de archivo.`}
+        description={description}
         count={products.length}
         breadcrumbs={[
           { label: "Inicio", href: "/" },
@@ -62,11 +102,11 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
           { label, href: base },
         ]}
         filters={[
-          { label: "Todos", href: "/accesorios" },
-          ...ACCESSORY_SUBCATEGORIES.map((s) => ({
+          { label: "Todo", href: "/accesorios" },
+          ...facets.map((s) => ({
             label: s.label,
             href: `/accesorios/${s.slug}`,
-            active: s.slug === subcategory,
+            active: s.slug === current.slug,
           })),
         ]}
         sortOptions={SORTS.map((s) => ({
@@ -76,11 +116,19 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
         }))}
       />
 
+      {/* Aviso de talla única */}
+      <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-pyne-orange/30 bg-pyne-orange/5 px-5 py-2.5">
+        <span className="text-pyne-orange">✦</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-pyne-cream">
+          Talla única — sin selección de medida
+        </span>
+      </div>
+
       <div className="mt-10">
         <ProductGrid
           products={products}
-          emptyTitle={`Sin stock de ${label}`}
-          emptyMessage="Por el momento no tenemos productos en esta subcategoría. Explorá otras opciones."
+          emptyTitle={`Sin stock de ${label.toLowerCase()}`}
+          emptyMessage="Por el momento no tenemos piezas en esta categoría. Mirá el resto de los accesorios."
         />
       </div>
     </div>

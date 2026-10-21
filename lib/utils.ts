@@ -38,7 +38,8 @@ export function cartCount(items: CartItem[]): number {
   return items.reduce((acc, i) => acc + i.quantity, 0);
 }
 
-export function titleize(slug: string): string {
+export function titleize(slug?: string): string {
+  if (!slug || typeof slug !== "string") return "";
   return slug
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
