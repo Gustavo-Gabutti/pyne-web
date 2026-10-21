@@ -129,13 +129,16 @@ export async function searchProducts(query: string): Promise<Product[]> {
   );
 }
 
-export function getBrandLabel(brandSlug: string): string {
-  const found = LOCAL_PRODUCTS.find((p) => p.brandSlug === brandSlug.toLowerCase());
+// Convertidas a async para que coincidan con las llamadas await de las páginas
+export async function getBrandLabel(brandSlug: string): Promise<string> {
+  const products = await getAllProducts();
+  const found = products.find((p) => p.brandSlug === brandSlug.toLowerCase());
   return found ? found.brand : brandSlug;
 }
 
-export function getSubcategoryLabel(category: Category, subcategory: string): string {
-  const found = LOCAL_PRODUCTS.find(
+export async function getSubcategoryLabel(category: Category, subcategory: string): Promise<string> {
+  const products = await getAllProducts();
+  const found = products.find(
     (p) => p.category === category && p.subcategory === subcategory.toLowerCase()
   );
   return found ? found.subcategoryLabel : subcategory;
