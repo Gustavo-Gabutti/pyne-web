@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+
 import CollectionHeader from "@/components/CollectionHeader";
 import ProductGrid from "@/components/ProductGrid";
 import { SNEAKER_BRANDS } from "@/lib/navigation";
@@ -15,15 +16,15 @@ export function generateStaticParams() {
   return SNEAKER_BRANDS.map((b) => ({ brand: b.slug }));
 }
 
-/* ---------- SEO dinámico ---------- */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { brand } = await params;
-  const label = getBrandLabel(brand) || titleize(brand);
-  const count = getProductsByBrand(brand).length;
+  const rawLabel = await getBrandLabel(brand);
+  const label = rawLabel || titleize(brand);
+  const brandProducts = await getProductsByBrand(brand);
 
   return {
     title: `Zapatillas ${label}`,
-    description: `${count} modelos de zapatillas ${label} seleccionados en PYNE. Deadstock, retros y vintage con talles US reales y envíos a todo el país.`,
+    description: `${brandProducts.length} modelos de zapatillas ${label} seleccionados en PYNE. Deadstock, retros y vintage con talles US reales y envíos a todo el país.`,
     alternates: { canonical: `/zapatillas/${brand}` },
     openGraph: {
       title: `Zapatillas ${label} | PYNE ✦`,
@@ -46,9 +47,10 @@ export default async function BrandPage({ params, searchParams }: PageProps) {
   const isKnownBrand = SNEAKER_BRANDS.some((b) => b.slug === brand);
   if (!isKnownBrand) notFound();
 
-  const label = getBrandLabel(brand) || titleize(brand);
-  const products = sortProducts(getProductsByBrand(brand), sort);
-
+  const rawLabel = await getBrandLabel(brand);
+  const label = rawLabel || titleize(brand);
+  const rawProducts = await getProductsByBrand(brand);
+  const products = sortProducts(rawProducts, sort);
   const base = `/zapatillas/${brand}`;
 
   return (

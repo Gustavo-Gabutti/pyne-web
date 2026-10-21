@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { searchProducts } from "@/lib/products";
 import { formatPrice } from "@/lib/utils";
+import type { Product } from "@/lib/types";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -20,11 +21,26 @@ export default function SearchBar({
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const suggestions = useMemo(() => {
-    if (query.trim().length < 2) return [];
-    return searchProducts(query).slice(0, 5);
+  /* Búsqueda asíncrona de productos */
+  useEffect(() => {
+    let active = true;
+
+    if (query.trim().length >= 2) {
+      searchProducts(query).then((results) => {
+        if (active) {
+          setSuggestions(results.slice(0, 5));
+        }
+      });
+    } else {
+      setSuggestions([]);
+    }
+
+    return () => {
+      active = false;
+    };
   }, [query]);
 
   /** Navegación tipada, reutilizable por el form y por el botón */
@@ -104,7 +120,7 @@ export default function SearchBar({
             </p>
           ) : (
             <ul className="space-y-1">
-              {suggestions.map((p) => (
+              {suggestions.map((p: Product) => (
                 <li key={p.id}>
                   <button
                     type="button"
