@@ -66,8 +66,7 @@ export default async function HomePage() {
             <span className="text-pyne-orange">historia</span> que sigue
           </h1>
           <p className="mt-7 max-w-xl animate-fadeUp text-base leading-relaxed text-pyne-kraft">
-            Sneakers deadstock, indumentaria de archivo y accesorios elegidos uno por uno.
-            Curaduría real, sin relleno.
+            Sneakers e indumentaria originales second hand, seleccionados uno a uno. Accesorios nuevos para completar la colección.
           </p>
           <div className="mt-10 flex animate-fadeUp flex-wrap gap-4">
             <Link href="/zapatillas" className="pyne-btn-primary">
