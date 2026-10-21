@@ -9,7 +9,7 @@ import { getAllProducts } from "@/lib/products";
 export const metadata: Metadata = {
   title: "PYNE ✦ Vintage & Selected Goods",
   description:
-    "Sneakers e indumentaria originales second hand, seleccionados uno a uno. Accesorios nuevos para completar la coleccion.",
+    "Sneakers e indumentaria originales second hand, seleccionados uno a uno. Accesorios nuevos para completar la colección.",
   alternates: { canonical: "/" },
 };
 
