@@ -1,103 +1,72 @@
-import { client, urlFor } from "./sanity";
 import raw from "@/data/products.json";
 import type { Category, Product } from "./types";
 
-const LOCAL_PRODUCTS = raw as Product[];
+const PRODUCTS = raw as Product[];
 
-export async function getAllProducts(): Promise<Product[]> {
-  try {
-    const query = `*[_type == "product"]{
-      "id": _id,
-      "slug": slug.current,
-      name,
-      brand,
-      brandSlug,
-      category,
-      subcategory,
-      subcategoryLabel,
-      price,
-      compareAtPrice,
-      description,
-      image,
-      images,
-      sizeType,
-      sizes,
-      condition,
-      stock,
-      featured,
-      tags
-    }`;
-    const sanityProducts = await client.fetch(query);
-    if (Array.isArray(sanityProducts) && sanityProducts.length > 0) {
-      return sanityProducts.map((p: any) => ({
-        ...p,
-        image: p.image ? urlFor(p.image).url() : "",
-        images: p.images ? p.images.map((img: any) => urlFor(img).url()) : [],
-      }));
-    }
-  } catch (err) {
-    console.warn("Utilizando productos locales como respaldo:", err);
-  }
-  return LOCAL_PRODUCTS;
+export function getAllProducts(): Product[] {
+  return PRODUCTS;
 }
 
-export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
-  const products = await getAllProducts();
-  return products.filter((p) => p.featured).slice(0, limit);
+export function getProductById(id: string): Product | undefined {
+  return PRODUCTS.find((p) => p.id === id || p.slug === id);
 }
 
-export async function getProductsByCategory(category: Category): Promise<Product[]> {
-  const products = await getAllProducts();
-  return products.filter((p) => p.category === category);
+export function getProductsByCategory(category: Category): Product[] {
+  return PRODUCTS.filter((p) => p.category === category);
 }
 
-export async function getProductsByBrand(brandSlug: string): Promise<Product[]> {
-  const products = await getAllProducts();
-  return products.filter(
+export function getProductsByBrand(brandSlug: string): Product[] {
+  return PRODUCTS.filter(
     (p) => p.category === "zapatillas" && p.brandSlug === brandSlug.toLowerCase()
   );
 }
 
-export async function getProductsBySubcategory(
+export function getProductsBySubcategory(
   category: Category,
   subcategory: string
-): Promise<Product[]> {
-  const products = await getAllProducts();
-  return products.filter(
+): Product[] {
+  return PRODUCTS.filter(
     (p) => p.category === category && p.subcategory === subcategory.toLowerCase()
   );
 }
 
-export async function getProductById(id: string): Promise<Product | undefined> {
-  const products = await getAllProducts();
-  return products.find((p) => p.id === id || p.slug === id || (p as any)._id === id);
+export function getFeaturedProducts(limit = 8): Product[] {
+  return PRODUCTS.filter((p) => p.featured).slice(0, limit);
 }
 
-export async function getRelatedProducts(product: Product, limit = 4): Promise<Product[]> {
-  const products = await getAllProducts();
-  return products.filter(
+export function getRelatedProducts(product: Product, limit = 4): Product[] {
+  return PRODUCTS.filter(
     (p) => p.id !== product.id && p.category === product.category
   ).slice(0, limit);
 }
 
-export async function searchProducts(query: string): Promise<Product[]> {
-  const products = await getAllProducts();
+export function searchProducts(query: string): Product[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return products.filter((p) =>
-    [p.name, p.brand, p.category, p.subcategoryLabel, p.condition, ...(p.tags || [])]
+  return PRODUCTS.filter((p) =>
+    [p.name, p.brand, p.category, p.subcategoryLabel, p.condition, ...p.tags]
       .join(" ")
       .toLowerCase()
       .includes(q)
   );
 }
 
-export async function getBrandLabel(brandSlug: string): Promise<string> {
-  const products = await getAllProducts();
-  const found = products.find((p) => p.brandSlug === brandSlug.toLowerCase());
+export function getBrandLabel(brandSlug: string): string {
+  const found = PRODUCTS.find((p) => p.brandSlug === brandSlug.toLowerCase());
   return found ? found.brand : brandSlug;
 }
 
+export function getSubcategoryLabel(
+  category: Category,
+  subcategory: string
+): string {
+  const found = PRODUCTS.find(
+    (p) => p.category === category && p.subcategory === subcategory.toLowerCase()
+  );
+  return found ? found.subcategoryLabel : subcategory;
+}
+
+/** Ordena por el parámetro `sort` de la URL */
 export function sortProducts(products: Product[], sort?: string): Product[] {
   const list = [...products];
   switch (sort) {
