@@ -63,7 +63,7 @@ export default async function HomePage() {
           <h1 className="mt-5 max-w-4xl animate-fadeUp font-display text-6xl uppercase leading-[0.88] tracking-tight text-pyne-cream sm:text-7xl lg:text-[7.5rem]">
             Piezas con
             <br />
-            <span className="text-pyne-orange">historia</span> propia
+            <span className="text-pyne-orange">historia</span> que sigue
           </h1>
           <p className="mt-7 max-w-xl animate-fadeUp text-base leading-relaxed text-pyne-kraft">
             Sneakers deadstock, indumentaria de archivo y accesorios elegidos uno por uno.
