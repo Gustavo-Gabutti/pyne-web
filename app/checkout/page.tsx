@@ -183,7 +183,7 @@ export default function CheckoutPage() {
                   inputMode="tel"
                   value={form.phone}
                   onChange={handleChange}
-                  placeholder="3704 96-8752"
+                  placeholder="3704 23-3558"
                   className="w-full"
                 />
               </Field>

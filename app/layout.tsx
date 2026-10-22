@@ -93,7 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   rel="noopener noreferrer"
                   className="text-[11px] uppercase tracking-[0.16em] text-pyne-orange hover:text-pyne-cream"
                 >
-                  WhatsApp: +54 9 3704 96-8752
+                  WhatsApp: +54 9 3704 23-3558
                 </a>
               </div>
             </div>
