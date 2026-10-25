@@ -4,12 +4,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { NAVIGATION } from "@/lib/navigation";
+import type { NavItem } from "@/lib/types";
 import Logo from "./Logo";
 import MegaMenu from "./MegaMenu";
 import SearchBar from "./SearchBar";
 import CartDrawer from "./CartDrawer";
 
-export default function Navbar() {
+interface NavbarProps {
+  /** Menú con las imágenes reales (viene del layout). Si no se pasa, usa el estático. */
+  navigation?: NavItem[];
+}
+
+export default function Navbar({ navigation = NAVIGATION }: NavbarProps) {
   const { count, openCart, hydrated } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -26,7 +32,7 @@ export default function Navbar() {
         <div className="pyne-container flex items-center justify-between gap-6">
           <div className="flex items-center gap-8">
             <Logo />
-            <MegaMenu />
+            <MegaMenu navigation={navigation} />
           </div>
 
           <div className="hidden max-w-md flex-1 md:block">
@@ -116,7 +122,7 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="max-h-[70vh] overflow-y-auto border-t border-pyne-border bg-pyne-black/95 backdrop-blur-xl lg:hidden">
             <div className="pyne-container space-y-6 py-6">
-              {NAVIGATION.map((item) => (
+              {navigation.map((item) => (
                 <div key={item.label}>
                   <Link
                     href={item.href}

@@ -24,9 +24,18 @@ export default function ProductDetail({ product }: { product: Product }) {
 
   const sizeLabel = useMemo(() => {
     if (product.sizeType === "numeric") return "Seleccioná tu talle (US)";
+    if (product.sizeType === "pants") return "Seleccioná tu talle (26–42)";
     if (product.sizeType === "standard") return "Seleccioná tu talle";
     return "Talle";
   }, [product.sizeType]);
+
+  // Enlace de la categoría/subcategoría del producto
+  const eyebrowHref =
+    product.category === "zapatillas"
+      ? `/zapatillas/${product.brandSlug}`
+      : product.subcategory && product.subcategory !== "otros"
+      ? `/${product.category}/${product.subcategory}`
+      : `/${product.category}`;
 
   const handleAdd = (): void => {
     if (!isUnique && !selectedSize) {
@@ -81,14 +90,7 @@ export default function ProductDetail({ product }: { product: Product }) {
 
         {/* Info del Producto */}
         <div className="flex flex-col">
-          <Link
-            href={
-              product.category === "zapatillas"
-                ? `/zapatillas/${product.brandSlug}`
-                : `/${product.category}/${product.subcategory}`
-            }
-            className="pyne-eyebrow hover:underline"
-          >
+          <Link href={eyebrowHref} className="pyne-eyebrow hover:underline">
             {product.brand} ✦ {product.subcategoryLabel}
           </Link>
           <h1 className="mt-3 font-display text-3xl uppercase leading-tight text-pyne-cream sm:text-4xl">
@@ -203,7 +205,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       {/* Modal Guía de talles */}
       {guideOpen && (
         <div
-          className="fixed inset-0 z-[3] grid place-items-center p-4"
+          className="fixed inset-0 z-[70] grid place-items-center p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Guía de talles"

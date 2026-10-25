@@ -1,7 +1,20 @@
 export type Category = "zapatillas" | "indumentaria" | "accesorios";
 
 /** Define qué tipo de selector de talle se renderiza */
-export type SizeType = "numeric" | "standard" | "unique";
+export type SizeType = "numeric" | "standard" | "pants" | "unique";
+
+/** Condiciones / estados posibles de un producto (única fuente de verdad) */
+export const PRODUCT_CONDITIONS = [
+  "Nuevo",
+  "Deadstock",
+  "Sin uso",
+  "Usado como nueva",
+  "Usado - 9/10",
+  "Usado - 8/10",
+  "Vintage",
+] as const;
+
+export type ProductCondition = (typeof PRODUCT_CONDITIONS)[number];
 
 export interface Product {
   id: string;
@@ -19,9 +32,11 @@ export interface Product {
   images: string[];
   sizeType: SizeType;
   sizes: string[];
-  condition: "Nuevo" | "Deadstock" | "Usado - 9/10" | "Usado - 8/10" | "Vintage";
+  condition: ProductCondition;
   stock: number;
   featured: boolean;
+  /** Posición manual dentro de destacados (1 = primero). Opcional. */
+  featuredOrder?: number | null;
   tags: string[];
 }
 

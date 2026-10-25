@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,28 +17,35 @@ interface SneakerCarouselProps {
   products: Product[];
 }
 
+const SWIPE_THRESHOLD = 50;
+const TAP_TOLERANCE = 10;
+
 export default function SneakerCarousel({ products }: SneakerCarouselProps) {
   // Garantizar que products sea un Array antes de filtrar
   const safeProducts = Array.isArray(products) ? products : [];
   const sneakers = safeProducts.filter((p) => p.category === "zapatillas");
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [flipped, setFlipped] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const dragRef = useRef<{ x: number; y: number } | null>(null);
 
   const nextSlide = useCallback(() => {
     if (sneakers.length === 0) return;
+    setFlipped(false);
     setCurrentIndex((prev) => (prev + 1) % sneakers.length);
   }, [sneakers.length]);
 
   const prevSlide = useCallback(() => {
     if (sneakers.length === 0) return;
+    setFlipped(false);
     setCurrentIndex((prev) => (prev - 1 + sneakers.length) % sneakers.length);
   }, [sneakers.length]);
 
-  // Temporizador automático de 10 segundos (se pausa si el usuario hace hover)
+  // Temporizador automático de 10 segundos (se pausa con hover de mouse o si la tarjeta está girada)
   useEffect(() => {
-    if (isHovered || sneakers.length === 0) return;
+    if (isHovered || flipped || sneakers.length === 0) return;
 
     timerRef.current = setInterval(() => {
       nextSlide();
@@ -41,17 +54,63 @@ export default function SneakerCarousel({ products }: SneakerCarouselProps) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [nextSlide, isHovered, sneakers.length]);
+  }, [nextSlide, isHovered, flipped, sneakers.length]);
+
+  /* ---------- Interacción del visor 3D ---------- */
+  const handleCardPointerEnter = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (e.pointerType === "mouse") setFlipped(true);
+  };
+
+  const handleCardPointerLeave = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (e.pointerType === "mouse") setFlipped(false);
+    dragRef.current = null;
+  };
+
+  const handleCardPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    dragRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleCardPointerUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    const start = dragRef.current;
+    dragRef.current = null;
+    if (!start) return;
+
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+
+    // Swipe horizontal → cambia de par
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) nextSlide();
+      else prevSlide();
+      return;
+    }
+
+    // Tap en pantallas táctiles → da vuelta la tarjeta (salvo que toque el enlace)
+    const isTap = Math.abs(dx) < TAP_TOLERANCE && Math.abs(dy) < TAP_TOLERANCE;
+    const onLink = (e.target as HTMLElement).closest("a");
+    if (e.pointerType !== "mouse" && isTap && !onLink) {
+      setFlipped((v) => !v);
+    }
+  };
+
+  const handleCardPointerCancel = (): void => {
+    dragRef.current = null;
+  };
 
   if (sneakers.length === 0) return null;
 
-  const currentProduct = sneakers[currentIndex];
+  const safeIndex = currentIndex % sneakers.length;
+  const currentProduct = sneakers[safeIndex];
 
   return (
     <div
       className="relative mt-12 overflow-hidden rounded-2xl border border-pyne-border bg-pyne-coal/80 p-6 sm:p-8 backdrop-blur-md shadow-2xl"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onPointerEnter={(e) => {
+        if (e.pointerType === "mouse") setIsHovered(true);
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === "mouse") setIsHovered(false);
+      }}
     >
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -81,41 +140,71 @@ export default function SneakerCarousel({ products }: SneakerCarouselProps) {
       </div>
 
       <div className="grid items-center gap-8 md:grid-cols-2">
-        {/* Contenedor con efecto 3D Spin */}
-        <div className="flex justify-center [perspective:1000px]">
-          <div className="group relative h-64 w-64 sm:h-72 sm:w-72 transition-transform duration-700 ease-out [transform-style:preserve-3d] hover:[transform:rotateY(180deg)]">
-            {/* Frente de la tarjeta */}
-            <div className="absolute inset-0 overflow-hidden rounded-2xl border border-pyne-border bg-pyne-smoke [backface-visibility:hidden]">
-              <Image
-                src={currentProduct.image}
-                alt={currentProduct.name}
-                fill
-                priority
-                sizes="(max-width: 640px) 256px, 288px"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <span className="absolute left-3 top-3 rounded-full bg-pyne-black/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-orange backdrop-blur">
-                {currentProduct.condition}
-              </span>
-            </div>
-
-            {/* Dorso 3D rotado */}
-            <div className="absolute inset-0 flex flex-col justify-center rounded-2xl border border-pyne-orange/40 bg-pyne-smoke/95 p-6 text-center [backface-visibility:hidden] [transform:rotateY(180deg)]">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-pyne-orange">
-                {currentProduct.brand}
-              </p>
-              <h4 className="mt-2 font-display text-xl uppercase text-pyne-cream">
-                {currentProduct.name}
-              </h4>
-              <p className="mt-2 text-xs text-pyne-kraft">
-                Talles: {currentProduct.sizes.join(", ")}
-              </p>
-              <Link
-                href={`/producto/${currentProduct.id}`}
-                className="pyne-btn-primary mt-4 inline-block text-[10px]"
+        {/* Contenedor fijo (no rota): recibe hover, tap y swipe sin parpadeos */}
+        <div className="flex justify-center">
+          <div
+            className="relative h-64 w-64 select-none touch-pan-y sm:h-72 sm:w-72 [perspective:1000px]"
+            onPointerEnter={handleCardPointerEnter}
+            onPointerLeave={handleCardPointerLeave}
+            onPointerDown={handleCardPointerDown}
+            onPointerUp={handleCardPointerUp}
+            onPointerCancel={handleCardPointerCancel}
+          >
+            {/* Elemento que gira */}
+            <div
+              className="relative h-full w-full transition-transform duration-700 ease-out"
+              style={{
+                transformStyle: "preserve-3d",
+                transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+              }}
+            >
+              {/* Frente */}
+              <div
+                className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl border border-pyne-border bg-pyne-smoke"
+                style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
               >
-                Ver par
-              </Link>
+                <Image
+                  src={currentProduct.image}
+                  alt={currentProduct.name}
+                  fill
+                  priority
+                  draggable={false}
+                  sizes="(max-width: 640px) 256px, 288px"
+                  className="pointer-events-none object-cover"
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-pyne-black/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-orange backdrop-blur">
+                  {currentProduct.condition}
+                </span>
+              </div>
+
+              {/* Dorso */}
+              <div
+                className={`absolute inset-0 flex flex-col justify-center rounded-2xl border border-pyne-orange/40 bg-pyne-smoke/95 p-6 text-center ${
+                  flipped ? "pointer-events-auto" : "pointer-events-none"
+                }`}
+                style={{
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  transform: "rotateY(180deg)",
+                }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-pyne-orange">
+                  {currentProduct.brand}
+                </p>
+                <h4 className="mt-2 font-display text-xl uppercase text-pyne-cream">
+                  {currentProduct.name}
+                </h4>
+                <p className="mt-2 text-xs text-pyne-kraft">
+                  Talles: {currentProduct.sizes.join(", ")}
+                </p>
+                <Link
+                  href={`/producto/${currentProduct.id}`}
+                  draggable={false}
+                  className="pyne-btn-primary mt-4 inline-block text-[10px]"
+                >
+                  Ver par
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -127,7 +216,7 @@ export default function SneakerCarousel({ products }: SneakerCarouselProps) {
               {currentProduct.brand}
             </span>
             <span className="text-[11px] uppercase tracking-[0.14em] text-pyne-muted">
-              {currentIndex + 1} / {sneakers.length}
+              {safeIndex + 1} / {sneakers.length}
             </span>
           </div>
 
@@ -151,16 +240,10 @@ export default function SneakerCarousel({ products }: SneakerCarouselProps) {
           </div>
 
           <div className="pt-2 flex flex-wrap gap-3">
-            <Link
-              href={`/producto/${currentProduct.id}`}
-              className="pyne-btn-primary"
-            >
+            <Link href={`/producto/${currentProduct.id}`} className="pyne-btn-primary">
               Comprar ahora
             </Link>
-            <Link
-              href="/zapatillas"
-              className="pyne-btn-outline"
-            >
+            <Link href="/zapatillas" className="pyne-btn-outline">
               Ver todas las zapatillas
             </Link>
           </div>

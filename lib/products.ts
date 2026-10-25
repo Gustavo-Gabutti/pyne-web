@@ -1,8 +1,10 @@
 import { cache } from "react";
 import raw from "@/data/products.json";
-import { client, projectId } from "./sanity";
-import type { Category, Product, SizeType } from "./types";
-import { slugify, titleize } from "./utils";
+import { client, projectId, urlFor } from "./sanity";
+import { ACCESSORY_SUBCATEGORIES, CLOTHING_SUBCATEGORIES } from "./navigation";
+import { PRODUCT_CONDITIONS } from "./types";
+import type { Category, Product, ProductCondition, SizeType } from "./types";
+import { compareSizes, slugify, titleize } from "./utils";
 
 /* ------------------------------------------------------------------ */
 /*  Configuración                                                      */
@@ -16,15 +18,12 @@ const REVALIDATE_SECONDS = 60;
 
 const FALLBACK_IMAGE = "/logo.jpg";
 
-const CONDITIONS: Product["condition"][] = [
-  "Nuevo",
-  "Deadstock",
-  "Usado - 9/10",
-  "Usado - 8/10",
-  "Vintage",
-];
+/** Ancho máximo de las imágenes que se piden al CDN de Sanity. */
+const IMAGE_MAX_WIDTH = 1200;
 
-const SIZE_TYPES: SizeType[] = ["numeric", "standard", "unique"];
+const CONDITIONS: readonly ProductCondition[] = PRODUCT_CONDITIONS;
+
+const SIZE_TYPES: SizeType[] = ["numeric", "standard", "pants", "unique"];
 
 const DEFAULT_SIZE_TYPE: Record<Category, SizeType> = {
   zapatillas: "numeric",
@@ -35,6 +34,10 @@ const DEFAULT_SIZE_TYPE: Record<Category, SizeType> = {
 /* ------------------------------------------------------------------ */
 /*  Consulta GROQ                                                      */
 /*  Acepta nombres de campo en inglés o en español (coalesce).         */
+/*                                                                     */
+/*  Imágenes: se trae el OBJETO de imagen completo (asset + hotspot +  */
+/*  crop) para transformarlo con urlFor, y además la URL directa del   */
+/*  asset como respaldo si urlFor no puede resolverlo.                 */
 /* ------------------------------------------------------------------ */
 
 const PRODUCTS_QUERY = `*[_type in ["product", "producto"] && !(_id in path("drafts.**"))] | order(_createdAt desc) {
@@ -52,9 +55,12 @@ const PRODUCTS_QUERY = `*[_type in ["product", "producto"] && !(_id in path("dra
   "condition": coalesce(condition, condicion, estado),
   "stock": stock,
   "featured": coalesce(featured, destacado, false),
+  "featuredOrder": coalesce(featuredOrder, ordenDestacado),
   "tags": tags,
-  "mainImage": coalesce(image.asset->url, mainImage.asset->url, imagen.asset->url),
-  "gallery": coalesce(images[].asset->url, gallery[].asset->url, imagenes[].asset->url)
+  "mainImage": coalesce(image, mainImage, imagen),
+  "mainImageUrl": coalesce(image.asset->url, mainImage.asset->url, imagen.asset->url),
+  "gallery": coalesce(images, gallery, imagenes),
+  "galleryUrls": coalesce(images[].asset->url, gallery[].asset->url, imagenes[].asset->url)
 }`;
 
 interface RawProduct {
@@ -72,9 +78,12 @@ interface RawProduct {
   condition?: unknown;
   stock?: unknown;
   featured?: unknown;
+  featuredOrder?: unknown;
   tags?: unknown;
   mainImage?: unknown;
+  mainImageUrl?: unknown;
   gallery?: unknown;
+  galleryUrls?: unknown;
 }
 
 /* ------------------------------------------------------------------ */
@@ -92,6 +101,32 @@ function toNum(value: unknown): number | null {
 
 function toStrArray(value: unknown): string[] {
   return Array.isArray(value) ? value.map((v) => toStr(v)).filter(Boolean) : [];
+}
+
+/**
+ * Convierte una imagen de Sanity en una URL utilizable por next/image.
+ * 1) Si ya es un string (URL), lo usa tal cual.
+ * 2) Si es un objeto de imagen con asset, usa urlFor (aplica hotspot/crop).
+ * 3) Si urlFor falla, usa la URL directa del asset (directUrl).
+ * Devuelve "" si no hay imagen válida.
+ */
+function imageToUrl(source: unknown, directUrl?: unknown): string {
+  if (typeof source === "string" && source.trim()) return source.trim();
+
+  if (source && typeof source === "object" && (source as { asset?: unknown }).asset) {
+    try {
+      const url = urlFor(source)
+        .width(IMAGE_MAX_WIDTH)
+        .fit("max")
+        .auto("format")
+        .url();
+      if (url) return url;
+    } catch (error) {
+      console.warn("[sanity] urlFor no pudo resolver la imagen, uso la URL directa:", error);
+    }
+  }
+
+  return toStr(directUrl);
 }
 
 /** Soporta descripción como texto simple o como bloques (Portable Text). */
@@ -120,6 +155,34 @@ function labelFrom(text: string): string {
   return /^[a-z0-9-]+$/.test(text) ? titleize(text) : text;
 }
 
+/**
+ * Asocia el texto libre de subcategoría con las subcategorías fijas del menú.
+ * Ej.: "Bolsos & Mochilas" → bolsos, "Buzos & Hoodies" → buzos.
+ */
+function resolveKnownSubcategory(
+  category: Category,
+  rawSub: string
+): { slug: string; label: string } | null {
+  const known =
+    category === "indumentaria"
+      ? CLOTHING_SUBCATEGORIES
+      : category === "accesorios"
+      ? ACCESSORY_SUBCATEGORIES
+      : [];
+  const s = slugify(rawSub);
+  if (!s) return null;
+  return (
+    known.find(
+      (k) => k.slug === s || slugify(k.label) === s || s.startsWith(`${k.slug}-`)
+    ) ?? null
+  );
+}
+
+function normalizeCondition(value: unknown): ProductCondition {
+  const wanted = slugify(toStr(value));
+  return CONDITIONS.find((c) => slugify(c) === wanted) ?? "Nuevo";
+}
+
 function normalizeSanityProduct(r: RawProduct): Product | null {
   const name = toStr(r.name);
   const category = normalizeCategory(r.category);
@@ -142,30 +205,53 @@ function normalizeSanityProduct(r: RawProduct): Product | null {
     subcategoryLabel = brand;
   } else {
     const rawSub = toStr(r.subcategory) || "otros";
-    subcategory = slugify(rawSub);
-    subcategoryLabel = labelFrom(rawSub);
+    const known = resolveKnownSubcategory(category, rawSub);
+    if (known) {
+      subcategory = known.slug;
+      subcategoryLabel = known.label;
+    } else {
+      subcategory = slugify(rawSub);
+      subcategoryLabel = labelFrom(rawSub);
+    }
   }
 
+  // Tipo de talle: el declarado en Sanity; si no hay, pantalones → "pants", si no, el default por categoría.
   const declared = slugify(toStr(r.sizeType)) as SizeType;
-  const sizeType = SIZE_TYPES.includes(declared) ? declared : DEFAULT_SIZE_TYPE[category];
-  const sizes = sizeType === "unique" ? ["Talla Única"] : toStrArray(r.sizes);
+  const hasDeclared = SIZE_TYPES.includes(declared);
+  let sizeType: SizeType = hasDeclared ? declared : DEFAULT_SIZE_TYPE[category];
+  if (!hasDeclared && category === "indumentaria" && subcategory === "pantalones") {
+    sizeType = "pants";
+  }
 
-  const wantedCondition = toStr(r.condition).toLowerCase();
-  const condition =
-    CONDITIONS.find((c) => c.toLowerCase() === wantedCondition) ?? "Nuevo";
-
-  const imageList = Array.from(
-    new Set(
-      [toStr(r.mainImage), ...(Array.isArray(r.gallery) ? r.gallery.map((g) => toStr(g)) : [])].filter(
-        Boolean
-      )
-    )
+  const rawSizes = toStrArray(r.sizes).map((s) =>
+    sizeType === "standard" || sizeType === "pants" ? s.toUpperCase() : s
   );
+  const sizes =
+    sizeType === "unique"
+      ? ["Talla Única"]
+      : Array.from(new Set(rawSizes)).sort(compareSizes);
+
+  const condition = normalizeCondition(r.condition);
+
+  // Imágenes: principal + galería, transformadas con urlFor (con respaldo a la URL directa)
+  const galleryObjects = Array.isArray(r.gallery) ? r.gallery : [];
+  const galleryDirect = Array.isArray(r.galleryUrls) ? r.galleryUrls : [];
+
+  const mainUrl = imageToUrl(r.mainImage, r.mainImageUrl);
+  const galleryUrls = galleryObjects.map((g, i) => imageToUrl(g, galleryDirect[i]));
+
+  const imageList = Array.from(new Set([mainUrl, ...galleryUrls].filter(Boolean)));
+
+  if (imageList.length === 0) {
+    console.warn(`[sanity] Producto sin imagen válida (${r._id} — ${name}), uso imagen de respaldo.`);
+  }
+
   const images = imageList.length > 0 ? imageList : [FALLBACK_IMAGE];
 
   const slug = toStr(r.slug);
   const price = toNum(r.price) ?? 0;
   const compare = toNum(r.compareAtPrice);
+  const tags = toStrArray(r.tags);
 
   return {
     id: slug || r._id,
@@ -186,9 +272,25 @@ function normalizeSanityProduct(r: RawProduct): Product | null {
     condition,
     // Si el producto no tiene stock cargado en Sanity, se asume disponible.
     stock: toNum(r.stock) ?? 10,
-    featured: r.featured === true,
-    tags: toStrArray(r.tags),
+    // La tag "destacado" equivale a marcar el producto como destacado.
+    featured: r.featured === true || tags.includes("destacado"),
+    featuredOrder: toNum(r.featuredOrder),
+    tags,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Prioridad de destacados                                            */
+/*  1) featured: true primero  2) featuredOrder ascendente             */
+/*  3) a igual orden, se mantiene el orden de creación (sort estable)  */
+/* ------------------------------------------------------------------ */
+
+function byFeaturedPriority(a: Product, b: Product): number {
+  if (a.featured !== b.featured) return a.featured ? -1 : 1;
+  if (!a.featured) return 0;
+  const oa = a.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+  const ob = b.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+  return oa - ob;
 }
 
 /* ------------------------------------------------------------------ */
@@ -198,7 +300,7 @@ function normalizeSanityProduct(r: RawProduct): Product | null {
 const loadProducts = cache(async (): Promise<Product[]> => {
   if (!projectId) {
     console.warn("[sanity] Falta NEXT_PUBLIC_SANITY_PROJECT_ID, uso datos locales.");
-    return LOCAL_PRODUCTS;
+    return [...LOCAL_PRODUCTS].sort(byFeaturedPriority);
   }
 
   try {
@@ -207,10 +309,13 @@ const loadProducts = cache(async (): Promise<Product[]> => {
       {},
       { next: { revalidate: REVALIDATE_SECONDS } }
     );
-    return docs.map(normalizeSanityProduct).filter((p): p is Product => p !== null);
+    return docs
+      .map(normalizeSanityProduct)
+      .filter((p): p is Product => p !== null)
+      .sort(byFeaturedPriority);
   } catch (error) {
     console.error("[sanity] No se pudo leer el catálogo, uso datos locales:", error);
-    return LOCAL_PRODUCTS;
+    return [...LOCAL_PRODUCTS].sort(byFeaturedPriority);
   }
 });
 
@@ -249,6 +354,7 @@ export async function getProductsBySubcategory(
   );
 }
 
+/** Solo productos marcados como destacados, en el orden elegido en Sanity. */
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
   const products = await loadProducts();
   return products.filter((p) => p.featured).slice(0, limit);
@@ -341,6 +447,6 @@ export function sortProducts(products: Product[], sort?: string): Product[] {
     case "nombre":
       return list.sort((a, b) => a.name.localeCompare(b.name));
     default:
-      return list.sort((a, b) => Number(b.featured) - Number(a.featured));
+      return list.sort(byFeaturedPriority);
   }
 }

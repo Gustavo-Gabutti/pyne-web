@@ -1,6 +1,12 @@
 import type { CartItem, CheckoutForm } from "./types";
+import { STANDARD_SIZES } from "./navigation";
 
 export const WHATSAPP_NUMBER = "5493704968752";
+
+/** Número del botón flotante de WhatsApp */
+export const WHATSAPP_CONTACT_NUMBER = "5493704233558";
+export const WHATSAPP_DEFAULT_MESSAGE =
+  "¡Hola PYNE ✦! Quiero hacer una consulta sobre los productos.";
 
 /** Une clases condicionalmente (mini clsx) */
 export function cn(...classes: Array<string | false | null | undefined>): string {
@@ -44,6 +50,21 @@ export function titleize(slug?: string): string {
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
+}
+
+/** Ordena talles: primero XS-XXL (en orden), después numéricos de menor a mayor. */
+export function compareSizes(a: string, b: string): number {
+  const ia = STANDARD_SIZES.indexOf(a);
+  const ib = STANDARD_SIZES.indexOf(b);
+  if (ia !== -1 && ib !== -1) return ia - ib;
+  if (ia !== -1) return -1;
+  if (ib !== -1) return 1;
+
+  const na = parseFloat(a.replace(/[^\d.]/g, ""));
+  const nb = parseFloat(b.replace(/[^\d.]/g, ""));
+  if (!Number.isNaN(na) && !Number.isNaN(nb) && na !== nb) return na - nb;
+
+  return a.localeCompare(b);
 }
 
 /* ---------------- WhatsApp ---------------- */

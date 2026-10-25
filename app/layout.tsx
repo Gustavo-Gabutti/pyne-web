@@ -5,10 +5,13 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import Navbar from "@/components/Navbar";
 import Logo from "@/components/Logo";
-import { NAVIGATION } from "@/lib/navigation";
+import WhatsAppButton from "@/components/WhatsAppButton";
+import { getNavigation } from "@/lib/menu";
 import { WHATSAPP_NUMBER } from "@/lib/utils";
 
+
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+
 
 const display = Oswald({
   subsets: ["latin"],
@@ -16,6 +19,7 @@ const display = Oswald({
   variable: "--font-display",
   display: "swap",
 });
+
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pyne.com.ar"),
@@ -35,11 +39,16 @@ export const metadata: Metadata = {
   },
 };
 
+
 export const viewport: Viewport = {
   themeColor: "#0D0D0D",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Menú con las fotos reales del inventario (Sanity), con respaldo si falla
+  const navigation = await getNavigation();
+
   return (
     <html
       lang="es"
@@ -48,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="flex min-h-screen flex-col font-sans" suppressHydrationWarning>
         <CartProvider>
-          <Navbar />
+          <Navbar navigation={navigation} />
           <main className="flex-1">{children}</main>
           <footer className="mt-24 border-t border-pyne-border bg-pyne-coal/50">
             <div className="pyne-container grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
@@ -60,14 +69,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </p>
               </div>
 
-              {NAVIGATION.map((item: any) => (
+
+              {navigation.map((item) => (
                 <div key={item.label}>
                   <h4 className="pyne-eyebrow mb-4">{item.label}</h4>
                   <ul className="space-y-2">
                     {item.columns
-                      ?.flatMap((c: any) => c.items)
+                      ?.flatMap((c) => c.items)
                       .slice(0, 6)
-                      .map((child: any) => (
+                      .map((child) => (
                         <li key={child.href}>
                           <Link
                             href={child.href}
@@ -81,6 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               ))}
             </div>
+
 
             <div className="border-t border-pyne-border">
               <div className="pyne-container flex flex-col items-center justify-between gap-3 py-6 sm:flex-row">
@@ -98,6 +109,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </div>
           </footer>
+
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>

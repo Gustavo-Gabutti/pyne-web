@@ -6,6 +6,12 @@ import { useCart } from "@/context/CartContext";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
+/** Texto de la etiqueta de stock bajo (null si no corresponde mostrarla). */
+function stockLabel(stock: unknown): string | null {
+  if (typeof stock !== "number" || stock <= 0 || stock > 3) return null;
+  return stock === 1 ? "Último en stock" : `Últimas ${stock}`;
+}
+
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const hasDiscount = Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
@@ -13,6 +19,7 @@ export default function ProductCard({ product }: { product: Product }) {
     ? Math.round((1 - product.price / (product.compareAtPrice as number)) * 100)
     : 0;
   const isUnique = product.sizeType === "unique";
+  const lowStock = stockLabel(product.stock);
 
   // Verificación defensiva: aseguramos que sizes sea siempre un arreglo
   const sizesList = Array.isArray(product.sizes) ? product.sizes : [];
@@ -39,9 +46,9 @@ export default function ProductCard({ product }: { product: Product }) {
             </span>
           )}
         </div>
-        {typeof product.stock === "number" && product.stock <= 3 && product.stock > 0 && (
+        {lowStock && (
           <span className="absolute right-3 top-3 rounded-full bg-pyne-ember/90 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white">
-            Últimas {product.stock}
+            {lowStock}
           </span>
         )}
       </Link>
