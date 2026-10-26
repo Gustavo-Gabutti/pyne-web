@@ -9,9 +9,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import { getNavigation } from "@/lib/menu";
 import { WHATSAPP_NUMBER } from "@/lib/utils";
 
-
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-
 
 const display = Oswald({
   subsets: ["latin"],
@@ -19,7 +17,6 @@ const display = Oswald({
   variable: "--font-display",
   display: "swap",
 });
-
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pyne.com.ar"),
@@ -30,6 +27,13 @@ export const metadata: Metadata = {
   description:
     "PYNE — Vintage & Selected Goods. Zapatillas deadstock, indumentaria vintage y accesorios seleccionados. Envíos a todo el país.",
   keywords: ["zapatillas", "vintage", "streetwear", "deadstock", "sneakers", "PYNE"],
+  // --- CONFIGURACIÓN DEL FAVICON DIFERENCIADO ---
+  icons: {
+    icon: "/favicon.jpg",     // Cambia por "/favicon.png" si tu archivo es png
+    shortcut: "/favicon.jpg",
+    apple: "/favicon.jpg",
+  },
+  // ---------------------------------------------
   openGraph: {
     type: "website",
     locale: "es_AR",
@@ -39,11 +43,9 @@ export const metadata: Metadata = {
   },
 };
 
-
 export const viewport: Viewport = {
   themeColor: "#0D0D0D",
 };
-
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Menú con las fotos reales del inventario (Sanity), con respaldo si falla
@@ -69,7 +71,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </p>
               </div>
 
-
               {navigation.map((item) => (
                 <div key={item.label}>
                   <h4 className="pyne-eyebrow mb-4">{item.label}</h4>
@@ -91,7 +92,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
               ))}
             </div>
-
 
             <div className="border-t border-pyne-border">
               <div className="pyne-container flex flex-col items-center justify-between gap-3 py-6 sm:flex-row">
