@@ -21,6 +21,7 @@ export const CLOTHING_SUBCATEGORIES = [
   { label: "Buzos & Hoodies", slug: "buzos" },
   { label: "Camperas", slug: "camperas" },
   { label: "Pantalones", slug: "pantalones" },
+  { label: "Bermudas", slug: "bermudas" },
   { label: "Camisas", slug: "camisas" },
   { label: "Shorts", slug: "shorts" },
 ];
@@ -59,7 +60,7 @@ export const NUMERIC_SIZES = [
 
 export const STANDARD_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
-/** Pantalones: talles numéricos del 26 al 42 */
+/** Pantalones y Bermudas: talles numéricos del 26 al 42 */
 export const PANTS_SIZES = Array.from({ length: 17 }, (_, i) => String(26 + i));
 
 export const UNIQUE_SIZE = "Talla Única";
@@ -146,14 +147,14 @@ export function buildNavigation(options: NavigationOptions = {}): NavItem[] {
       columns: [
         {
           title: "Prendas",
-          items: CLOTHING_SUBCATEGORIES.slice(0, 3).map((s) => ({
+          items: CLOTHING_SUBCATEGORIES.slice(0, 4).map((s) => ({
             label: s.label,
             href: `${ROUTES.indumentaria}/${s.slug}`,
           })),
         },
         {
           title: "Más",
-          items: CLOTHING_SUBCATEGORIES.slice(3).map((s) => ({
+          items: CLOTHING_SUBCATEGORIES.slice(4).map((s) => ({
             label: s.label,
             href: `${ROUTES.indumentaria}/${s.slug}`,
           })),

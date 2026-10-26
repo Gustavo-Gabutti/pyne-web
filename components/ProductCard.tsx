@@ -32,14 +32,9 @@ export default function ProductCard({ product }: { product: Product }) {
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        {/* Contenedor superior unificado para evitar solapamientos en mobile */}
+        {/* Contenedor superior unificado (sin etiqueta de condición, solo descuento y stock) */}
         <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2 pointer-events-none">
           <div className="flex flex-col gap-1.5 pointer-events-auto">
-            {product.condition && (
-              <span className="rounded-full bg-pyne-black/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-kraft backdrop-blur">
-                {product.condition}
-              </span>
-            )}
             {hasDiscount && (
               <span className="rounded-full bg-pyne-orange px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-black">
                 -{discount}%
