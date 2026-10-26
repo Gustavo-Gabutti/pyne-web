@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
@@ -20,7 +19,6 @@ export default function ProductCard({ product }: { product: Product }) {
     : 0;
   const isUnique = product.sizeType === "unique";
   const lowStock = stockLabel(product.stock);
-
   // Verificación defensiva: aseguramos que sizes sea siempre un arreglo
   const sizesList = Array.isArray(product.sizes) ? product.sizes : [];
 
@@ -34,25 +32,27 @@ export default function ProductCard({ product }: { product: Product }) {
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute left-3 top-3 flex flex-col gap-1.5">
-          {product.condition && (
-            <span className="rounded-full bg-pyne-black/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-kraft backdrop-blur">
-              {product.condition}
-            </span>
-          )}
-          {hasDiscount && (
-            <span className="rounded-full bg-pyne-orange px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-black">
-              -{discount}%
+        {/* Contenedor superior unificado para evitar solapamientos en mobile */}
+        <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2 pointer-events-none">
+          <div className="flex flex-col gap-1.5 pointer-events-auto">
+            {product.condition && (
+              <span className="rounded-full bg-pyne-black/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-kraft backdrop-blur">
+                {product.condition}
+              </span>
+            )}
+            {hasDiscount && (
+              <span className="rounded-full bg-pyne-orange px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-pyne-black">
+                -{discount}%
+              </span>
+            )}
+          </div>
+          {lowStock && (
+            <span className="pointer-events-auto rounded-full bg-pyne-ember/90 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white whitespace-nowrap">
+              {lowStock}
             </span>
           )}
         </div>
-        {lowStock && (
-          <span className="absolute right-3 top-3 rounded-full bg-pyne-ember/90 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white">
-            {lowStock}
-          </span>
-        )}
       </Link>
-
       <div className="flex flex-1 flex-col gap-2 p-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-pyne-orange">
           {product.brand}
@@ -63,8 +63,7 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           {product.name}
         </Link>
-
-        {/* Renderizado condicional seguro de talles */}
+        {/* Renderizado condicional seguro de talles en el epígrafe */}
         {sizesList.length > 0 && (
           <div className="flex flex-wrap gap-1 pt-1">
             {sizesList.slice(0, 5).map((size) => (
@@ -80,7 +79,6 @@ export default function ProductCard({ product }: { product: Product }) {
             )}
           </div>
         )}
-
         <div className="mt-auto flex items-end justify-between pt-3">
           <div>
             {hasDiscount && (
