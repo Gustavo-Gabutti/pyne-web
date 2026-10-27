@@ -27,13 +27,11 @@ export const metadata: Metadata = {
   description:
     "PYNE — Vintage & Selected Goods. Zapatillas deadstock, indumentaria vintage y accesorios seleccionados. Envíos a todo el país.",
   keywords: ["zapatillas", "vintage", "streetwear", "deadstock", "sneakers", "PYNE"],
-  // --- CONFIGURACIÓN DEL FAVICON DIFERENCIADO ---
   icons: {
-    icon: "/favicon.jpg",     // Cambia por "/favicon.png" si tu archivo es png
-    shortcut: "/favicon.jpg",
-    apple: "/favicon.jpg",
+    icon: "/icon.jpg",
+    shortcut: "/icon.jpg",
+    apple: "/icon.jpg",
   },
-  // ---------------------------------------------
   openGraph: {
     type: "website",
     locale: "es_AR",

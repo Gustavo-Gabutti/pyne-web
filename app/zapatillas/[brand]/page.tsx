@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `Zapatillas ${current.label}`,
-    description: `${count} ${count === 1 ? "modelo" : "modelos"} de zapatillas ${current.label} seleccionados en PYNE. Deadstock, retros y vintage con talles US reales y envíos a todo el país.`,
+    description: `${count} ${count === 1 ? "modelo" : "modelos"} de zapatillas ${current.label} seleccionados en PYNE. Second hand, retros y vintage con talles US reales y envíos a todo el país.`,
     alternates: { canonical: `/zapatillas/${brand}` },
     openGraph: {
       title: `Zapatillas ${current.label} | PYNE ✦`,
